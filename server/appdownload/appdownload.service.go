@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"realtimedashboard/appdownload/cors"
+	"time"
 
 	"golang.org/x/net/websocket"
 )
@@ -20,9 +21,19 @@ func SetupRoutes() {
 	go dbWatcher.WatchAppDownloads()
 	wsHandler := &websocketDownloadHandler{databaseWatcher: dbWatcher}
 	http.Handle(appDownloadsWebsocketBasePath, websocket.Handler(wsHandler.webappDownloadSocket))
+
+	go generateDataPeriodically()
+
 	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func generateDataPeriodically() {
+	for {
+		time.Sleep(1 * time.Second)
+		insertRandomDownload()
 	}
 }
 
@@ -44,5 +55,4 @@ func (a *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
-
 }

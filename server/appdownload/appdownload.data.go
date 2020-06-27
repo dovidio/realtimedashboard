@@ -2,13 +2,15 @@ package appdownload
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"realtimedashboard/database"
 	"sync"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -31,11 +33,11 @@ var AppNames = [...]string{
 
 // AppDownload contains metadata about downloads
 type AppDownload struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty" mapstructure:"_id"`
 	Longitude    float64            `bson:"longitude" json:"longitude"`
 	Latitude     float64            `bson:"latitude" json:"latitude"`
-	AppID        string             `bson:"app_id" json:"app_id"`
-	DownloadedAt int64              `bson:"downloaded_at" json:"downloaded_at"`
+	AppID        string             `bson:"app_id" json:"app_id" mapstructure:"app_id"`
+	DownloadedAt int64              `bson:"downloaded_at" json:"downloaded_at" mapstructure:"downloaded_at"`
 }
 
 func getAppDownloadList() []AppDownload {
@@ -119,9 +121,11 @@ func (m *mongoDbWatchHandler) WatchAppDownloads() {
 	}
 
 	collection := client.Database("appdownloads").Collection("appdownloads")
-	var pipeline mongo.Pipeline
+	var pipeline = mongo.Pipeline{
+		{{"$project", bson.D{{"operationType", 0}, {"ns", 0}, {"documentKey", 0}, {"clusterTime", 0}}}},
+	}
 	ctx := context.Background()
-	streamCur, err := collection.Watch(ctx, pipeline, options.ChangeStream())
+	streamCur, err := collection.Watch(ctx, pipeline, options.ChangeStream().SetFullDocument(options.UpdateLookup))
 	if err != nil {
 		log.Fatalf("Error getting streaming cursor: %v", err)
 	}
@@ -134,7 +138,10 @@ func (m *mongoDbWatchHandler) WatchAppDownloads() {
 		if !found {
 			log.Fatalf("Cannnot find full document: %v", err)
 		}
-		appDownload := extractAppDownload(fullDocument)
+		appDownload, err := extractAppDownload(fullDocument)
+		if err != nil {
+			fmt.Print(err)
+		}
 
 		m.mut.Lock()
 		for _, watcher := range m.watchHandlers {
@@ -144,13 +151,15 @@ func (m *mongoDbWatchHandler) WatchAppDownloads() {
 	}
 }
 
-func extractAppDownload(m interface{}) AppDownload {
+func extractAppDownload(m interface{}) (AppDownload, error) {
+
 	var appDownload AppDownload
-	appDownload, ok := m.(AppDownload)
+	b, ok := m.(bson.M)
 	if !ok {
-		log.Printf("got data of type %T but wanted int", m)
-		os.Exit(1)
+		return appDownload, errors.New("Could not deserialize document")
 	}
 
-	return appDownload
+	mapstructure.Decode(b, &appDownload)
+
+	return appDownload, nil
 }
