@@ -1,74 +1,45 @@
 package appdownload
 
 import (
-	"context"
-	"fmt"
 	"log"
-	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/net/websocket"
-
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// DownloadHandler gets called every time a new download has been observed
+type DownloadHandler interface {
+	OnNewDownload(AppDownload)
+}
+
+type websocketDownloadHandler struct {
+	ws              *websocket.Conn
+	databaseWatcher DatabaseWatchHandler
+}
 
 type message struct {
 	Data string `json:"data"`
 	Type string `json:"type"`
 }
 
-func appDownloadSocket(ws *websocket.Conn) {
+func (w *websocketDownloadHandler) webappDownloadSocket(ws *websocket.Conn) {
 
-	go func(c *websocket.Conn) {
-		for {
-			var msg message
-			if err := websocket.JSON.Receive(ws, &msg); err != nil {
-				log.Println(err)
-				break
-			}
-
-			fmt.Printf("recieved message %s\n", msg.Data)
-		}
-
-	}(ws)
-
+	w.ws = ws
+	myID := w.databaseWatcher.RegisterHandler(w)
+	log.Printf("My id is %d", myID)
 	for {
-		var appdownloads AppDownload
-		if err := websocket.JSON.Send(ws, appdownloads); err != nil {
+		var msg message
+		if err := websocket.JSON.Receive(ws, &msg); err != nil {
+			log.Printf("Error while reading message: %v", err)
 			break
 		}
+
+		log.Printf("received message %s\n", msg.Data)
 	}
+	w.databaseWatcher.UnregisterHandler(myID)
 }
 
-func watchAppDownloads() {
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017/").SetDirect(true))
-	if err != nil {
-		log.Fatalf("Failed building mongo client: %v", err)
-	}
-
-	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
-	err = client.Ping(ctx, readpref.Nearest())
-	if err != nil {
-		log.Fatalf("failed connecting to mongo: %v", err)
-	}
-
-	collection := client.Database("appdownloads").Collection("appdownloads")
-	var pipeline mongo.Pipeline // set up pipeline
-	streamCur, err := collection.Watch(context.Background(), pipeline, options.ChangeStream())
-	if err != nil {
-		log.Fatalf("Error getting streaming cursor: %v", err)
-	}
-	for streamCur.Next(context.Background()) {
-		var result bson.M
-		streamCur.Decode(&result)
-
-		_, found := result["fullDocument"]
-		if !found {
-			log.Fatalf("Cannnot find full document: %v", err)
-		}
-
+func (w *websocketDownloadHandler) OnNewDownload(a AppDownload) {
+	if err := websocket.JSON.Send(w.ws, a); err != nil {
+		log.Panicf("Error while trying to send update to websocket: %v", err)
 	}
 }

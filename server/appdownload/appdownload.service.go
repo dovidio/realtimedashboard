@@ -5,14 +5,21 @@ import (
 	"log"
 	"net/http"
 	"realtimedashboard/appdownload/cors"
+
+	"golang.org/x/net/websocket"
 )
 
 const appDownloadsBasePath = "/appdownloads"
+const appDownloadsWebsocketBasePath = "/appdownloadssocket"
 
 // SetupRoutes registers the routes for app downloads
 func SetupRoutes() {
 	handler := &Handler{}
 	http.Handle(appDownloadsBasePath, cors.Middleware(handler))
+	dbWatcher := &mongoDbWatchHandler{watchHandlers: make([]DownloadHandler, 0)}
+	go dbWatcher.WatchAppDownloads()
+	wsHandler := &websocketDownloadHandler{databaseWatcher: dbWatcher}
+	http.Handle(appDownloadsWebsocketBasePath, websocket.Handler(wsHandler.webappDownloadSocket))
 	err := http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
 		log.Fatal(err)
