@@ -75,8 +75,8 @@ func insertRandomDownload() {
 
 	var appDownload AppDownload
 	appDownload.AppID = AppNames[rand.Int31n(int32(len(AppNames)))]
-	appDownload.Latitude = rand.Float64()*10 + 40.0
-	appDownload.Longitude = rand.Float64()*10 - 10.0
+	appDownload.Latitude = rand.Float64()*20 + 40.0
+	appDownload.Longitude = rand.Float64() * 35
 	appDownload.DownloadedAt = time.Now().Unix()
 
 	_, err := collection.InsertOne(ctx, appDownload)
