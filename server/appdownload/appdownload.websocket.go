@@ -46,20 +46,20 @@ func appDownloadSocket(ws *websocket.Conn) {
 func watchAppDownloads() {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017/").SetDirect(true))
 	if err != nil {
-		log.Fatal("Failed building mongo client: %v", err)
+		log.Fatalf("Failed building mongo client: %v", err)
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), 2*time.Second)
 	err = client.Ping(ctx, readpref.Nearest())
 	if err != nil {
-		log.Fatal("failed connecting to mongo: %v", err)
+		log.Fatalf("failed connecting to mongo: %v", err)
 	}
 
 	collection := client.Database("appdownloads").Collection("appdownloads")
 	var pipeline mongo.Pipeline // set up pipeline
 	streamCur, err := collection.Watch(context.Background(), pipeline, options.ChangeStream())
 	if err != nil {
-		log.Fatal("Error getting streaming cursor: %v", err)
+		log.Fatalf("Error getting streaming cursor: %v", err)
 	}
 	for streamCur.Next(context.Background()) {
 		var result bson.M
@@ -67,7 +67,7 @@ func watchAppDownloads() {
 
 		_, found := result["fullDocument"]
 		if !found {
-			log.Fatal("Cannnot find full document: %v", err)
+			log.Fatalf("Cannnot find full document: %v", err)
 		}
 
 	}
