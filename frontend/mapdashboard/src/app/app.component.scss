@@ -1,0 +1,13 @@
+.main-container {
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+}
+
+.header-container {
+    display: flex;
+}
+
+.map-container {
+    flex-grow: 1;
+}
