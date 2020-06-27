@@ -3,38 +3,12 @@ package appdownload
 import (
 	"context"
 	"log"
+	"math/rand"
 	"realtimedashboard/database"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
-
-var MockData = []interface{}{
-	AppDownload{
-		Longitude:    12.377281,
-		Latitude:     42.000325,
-		AppID:        "IOS_ALERT",
-		DownloadedAt: 1593181859189,
-	},
-	AppDownload{
-		Longitude:    11.377481,
-		Latitude:     41.000325,
-		AppID:        "IOS_MATE",
-		DownloadedAt: 1593183859189,
-	},
-	AppDownload{
-		Longitude:    22.377281,
-		Latitude:     44.000325,
-		AppID:        "ANDROID_ALERT",
-		DownloadedAt: 1593184859189,
-	},
-	AppDownload{
-		Longitude:    12.377281,
-		Latitude:     42.000325,
-		AppID:        "ANDROID_MATE",
-		DownloadedAt: 1593189853189,
-	},
-}
 
 func getAppDownloadList() []AppDownload {
 	collection := database.Client.Database("appdownloads").Collection("appdownloads")
@@ -44,7 +18,7 @@ func getAppDownloadList() []AppDownload {
 
 	cur, err := collection.Find(ctx, bson.M{})
 	if err != nil {
-		log.Fatalf("There was an error while retrieving app downloads: %v", err)
+		log.Panicf("There was an error while retrieving app downloads: %v", err)
 	}
 
 	appDownloads := make([]AppDownload, 0)
@@ -53,13 +27,30 @@ func getAppDownloadList() []AppDownload {
 		var appDownload AppDownload
 		cur.Decode(&appDownload)
 		if err != nil {
-			log.Printf("Error while marshalling appdownload: %v", err)
+			log.Panicf("Error while marshalling appdownload: %v", err)
 		}
 
 		appDownloads = append(appDownloads, appDownload)
 	}
 
-	// collection
-
 	return appDownloads
+}
+
+func insertRandomDownload() {
+	collection := database.Client.Database("appdownloads").Collection("appdownloads")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var appDownload AppDownload
+	appDownload.AppID = AppNames[rand.Int31n(int32(len(AppNames)))]
+	appDownload.Latitude = rand.Float64()*180.0 - 90.0
+	appDownload.Longitude = rand.Float64()*180.0 - 90.0
+	appDownload.DownloadedAt = time.Now().Unix()
+
+	_, err := collection.InsertOne(ctx, appDownload)
+
+	if err != nil {
+		log.Panicf("Error while trying to insert an appdownload: %v", err)
+	}
 }

@@ -17,6 +17,6 @@ func SetupDatabase() {
 	Client, err = mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27017/").SetDirect(true))
 
 	if err != nil {
-		log.Fatal("Could not get client: %v", err)
+		log.Fatalf("Could not get client: %v", err)
 	}
 }

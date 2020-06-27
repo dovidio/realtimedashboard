@@ -5,22 +5,17 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 // AppID identifies the os and type of the application
 type AppID string
 
-const (
-	// IosAlert does something
-	IosAlert AppID = "IOS_ALERT"
-	// IosMate does something
-	IosMate = "IOS_MATE"
-	// IosE4 does something
-	IosE4 = "IOS_E4"
-	// AndroidAlert does something
-	AndroidAlert = "ANDROID_ALERT"
-	// AndroidMate does something
-	AndroidMate = "ANDROID_MATE"
-	// AndroidE4 does something
-	AndroidE4 = "ANDOID_E4"
-)
+// AppNames hold a list of possible app names
+var AppNames = [...]string{
+	"IOS_ALERT",
+	"IOS_MATE",
+	"IOS_E4",
+	"ANDROID_ALERT",
+	"ANDROID_MATE",
+	"ANDOID_E4",
+}
 
-// AppDownloads contains metadata about downloads
+// AppDownload contains metadata about downloads
 type AppDownload struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Longitude    float64            `bson:"longitude" json:"longitude"`
