@@ -16,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/uuid"
 )
 
 // AppID identifies the os and type of the application
@@ -74,8 +75,8 @@ func insertRandomDownload() {
 
 	var appDownload AppDownload
 	appDownload.AppID = AppNames[rand.Int31n(int32(len(AppNames)))]
-	appDownload.Latitude = rand.Float64()*180.0 - 90.0
-	appDownload.Longitude = rand.Float64()*180.0 - 90.0
+	appDownload.Latitude = rand.Float64()*10 + 40.0
+	appDownload.Longitude = rand.Float64()*10 - 10.0
 	appDownload.DownloadedAt = time.Now().Unix()
 
 	_, err := collection.InsertOne(ctx, appDownload)
@@ -87,25 +88,27 @@ func insertRandomDownload() {
 
 // DatabaseWatchHandler watches for changes in a database and handles updates calling DownloadWatcher.OnNewDownload
 type DatabaseWatchHandler interface {
-	RegisterHandler(d DownloadHandler) int
-	UnregisterHandler(id int)
+	RegisterHandler(d DownloadHandler) uuid.UUID
+	UnregisterHandler(u uuid.UUID)
 	WatchAppDownloads()
 }
 
 type mongoDbWatchHandler struct {
-	watchHandlers []DownloadHandler
+	watchHandlers map[uuid.UUID]DownloadHandler
 	mut           sync.Mutex
 }
 
-func (m *mongoDbWatchHandler) RegisterHandler(d DownloadHandler) int {
+func (m *mongoDbWatchHandler) RegisterHandler(d DownloadHandler) uuid.UUID {
 	m.mut.Lock()
 	defer m.mut.Unlock()
-	m.watchHandlers = append(m.watchHandlers, d)
-	return len(m.watchHandlers) - 1
+	uuid, _ := uuid.New()
+	m.watchHandlers[uuid] = d
+
+	return uuid
 }
 
-func (m *mongoDbWatchHandler) UnregisterHandler(id int) {
-	m.watchHandlers = append(m.watchHandlers[:id], m.watchHandlers[id+1:]...)
+func (m *mongoDbWatchHandler) UnregisterHandler(u uuid.UUID) {
+	delete(m.watchHandlers, u)
 }
 
 func (m *mongoDbWatchHandler) WatchAppDownloads() {

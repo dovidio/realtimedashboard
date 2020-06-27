@@ -40,6 +40,6 @@ func (w *websocketDownloadHandler) webappDownloadSocket(ws *websocket.Conn) {
 
 func (w *websocketDownloadHandler) OnNewDownload(a AppDownload) {
 	if err := websocket.JSON.Send(w.ws, a); err != nil {
-		log.Panicf("Error while trying to send update to websocket: %v", err)
+		log.Printf("Error while trying to send update to websocket: %v", err)
 	}
 }

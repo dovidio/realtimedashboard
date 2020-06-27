@@ -7,6 +7,7 @@ import (
 	"realtimedashboard/appdownload/cors"
 	"time"
 
+	"go.mongodb.org/mongo-driver/x/mongo/driver/uuid"
 	"golang.org/x/net/websocket"
 )
 
@@ -17,7 +18,7 @@ const appDownloadsWebsocketBasePath = "/appdownloadssocket"
 func SetupRoutes() {
 	handler := &Handler{}
 	http.Handle(appDownloadsBasePath, cors.Middleware(handler))
-	dbWatcher := &mongoDbWatchHandler{watchHandlers: make([]DownloadHandler, 0)}
+	dbWatcher := &mongoDbWatchHandler{watchHandlers: make(map[uuid.UUID]DownloadHandler, 0)}
 	go dbWatcher.WatchAppDownloads()
 	wsHandler := &websocketDownloadHandler{databaseWatcher: dbWatcher}
 	http.Handle(appDownloadsWebsocketBasePath, websocket.Handler(wsHandler.webappDownloadSocket))
