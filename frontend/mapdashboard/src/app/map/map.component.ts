@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import mapboxgl from 'mapbox-gl';
 import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { WebsocketService } from '../services/websocket.service';
 import { AppDownloadService } from '../services/app-download.service';
 import { AppDownload } from '../model';
-
+import { tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-map',
@@ -17,9 +17,15 @@ export class MapComponent implements OnInit {
   lat = 46.641894;
   lng = 14.269776;
 
-  constructor(private appDownloadService: AppDownloadService) { }
+  constructor(private appDownloadService: AppDownloadService, private websocketService: WebsocketService) { }
 
   ngOnInit(): void {
+    this.initializeMap();
+    this.startWebsocket();
+    this.makeFirstRequest();
+  }
+
+  initializeMap(): void {
     mapboxgl.accessToken = environment.mapbox.accessToken;
     this.map = new mapboxgl.Map({
       container: 'map',
@@ -29,15 +35,25 @@ export class MapComponent implements OnInit {
     });
     // Add map controls
     this.map.addControl(new mapboxgl.NavigationControl());
+    this.map.addControl(new mapboxgl.ScaleControl())
+  }
 
+  startWebsocket(): void {
+    this.websocketService.connect();
+    this.websocketService.socket$
+      .pipe(tap((e) => console.log("called but is there?", e)))
+      .subscribe(this.addToMap.bind(this));
+  }
+
+  makeFirstRequest(): void {
     this.appDownloadService.getAppDownloadList().subscribe((appDownloads: AppDownload[]) => {
-
-      appDownloads.forEach((appDownload) => {
-        var marker = new mapboxgl.Marker()
-          .setLngLat([appDownload.longitude, appDownload.latitude])
-          .addTo(this.map);
-      })
+      appDownloads.forEach(this.addToMap.bind(this))
     });
   }
 
+  addToMap(appDownload: AppDownload): void {
+    new mapboxgl.Marker()
+      .setLngLat([appDownload.longitude, appDownload.latitude])
+      .addTo(this.map);
+  }
 }
