@@ -7,7 +7,8 @@ export const environment = {
   mapbox: {
     accessToken: 'pk.eyJ1IjoidW1iZXJ0b2RvdiIsImEiOiJjaXphNWJldGkwMXBwMzFxb3lrdGhzaXkyIn0.f2G5Y-kwUxxW2TlXYXFRCQ'
   },
-  wsEndpoint: "ws://localhost:8080/appdownloadssocket"
+  wsEndpoint: "ws://localhost:8080/appdownloadssocket",
+  baseEndpoint: "http://localhost:8080"
 };
 
 /*
