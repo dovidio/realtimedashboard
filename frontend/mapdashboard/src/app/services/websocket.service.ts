@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
-import { switchAll } from 'rxjs/operators';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { environment } from 'src/environments/environment';
 import { AppDownload } from '../model';

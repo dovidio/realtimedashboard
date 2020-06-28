@@ -1,8 +1,12 @@
-<div class="main-container">
-    <div class="header-container">
-        <app-header></app-header>
-    </div>
-    <div class="map-container">
-        <app-map></app-map>
-    </div>
+<div class="app-wrapper">
+    <app-header></app-header>
+
+    <mat-sidenav-container class="content-container">
+        <mat-sidenav mode="side" opened>
+            <app-statistics class="mat-primary"></app-statistics>
+        </mat-sidenav>
+        <mat-sidenav-content>
+            <app-map class="map-container"></app-map>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
 </div>
