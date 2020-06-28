@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject} from 'rxjs';
+import { BehaviorSubject, timer, Subscription } from 'rxjs';
 import { debounceTime, take } from 'rxjs/operators';
 import { WebsocketService } from './websocket.service';
 import { AppDownload, StatsSummary, GeoJson } from '../model';
 import { AppDownloadService } from './app-download.service';
-import { AppComponent } from '../app.component';
 
 type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
 
@@ -19,7 +18,6 @@ const incrementStats = (array: StatsSummary[], prop: string): void => {
 };
 
 const getTimeOfDay = (appDownload: AppDownload): TimeOfDay => {
-
   const hours = new Date(appDownload.downloaded_at).getUTCHours();
 
   if (hours > 5 && hours <= 12) {
@@ -54,8 +52,28 @@ export class StatisticsService {
   byTimeOfDay$ = this.byTimeOfDaySubject.asObservable();
   byApp$ = this.byAppSubject.asObservable();
 
+  private wsSubscription = Subscription.EMPTY;
+
   constructor(private websocketService: WebsocketService, private appDownloadService: AppDownloadService) {
-    this.websocketService.socket$.pipe().subscribe(this.updateStats.bind(this));
+    // every five seconds
+    this.setupAutomaticDataReconnection();
+    this.connectAndPushDataToConsumers();
+  }
+
+  // every five seconds we check that the socket connection is healthy. If that is not the case, we try to reconnect
+  // and we refresh the available data
+  private setupAutomaticDataReconnection(): void {
+    timer(5000, 5000).subscribe(() => {
+      if (this.websocketService.socket$.isStopped || this.websocketService.socket$.closed) {
+        this.websocketService.connect();
+        this.wsSubscription.unsubscribe();
+        this.connectAndPushDataToConsumers();
+      }
+    })
+  }
+
+  private connectAndPushDataToConsumers() {
+    this.wsSubscription = this.websocketService.socket$.subscribe(this.updateStats.bind(this));
     this.appDownloadService.getAppDownloadList().pipe(take(1)).subscribe((appDownloads: AppDownload[]) => {
       appDownloads.forEach(this.updateStats.bind(this))
     });

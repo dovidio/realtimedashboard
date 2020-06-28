@@ -9,7 +9,7 @@ const WS_ENDPOINT = environment.wsEndpoint;
   providedIn: 'root'
 })
 export class WebsocketService {
-
+  
   public socket$: WebSocketSubject<AppDownload>;
 
   constructor() { 

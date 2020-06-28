@@ -5,11 +5,10 @@ import { StatisticsService } from '../services/statistics.service';
 @Component({
   selector: 'app-statistics',
   templateUrl: './statistics.component.html',
-  styleUrls: ['./statistics.component.scss']
 })
 export class StatisticsComponent {
 
-  selectedGrouping: "bycountry" | "bytimeofday" | "byapp" = "bycountry"
+  selectedGrouping: "bycountry" | "bytimeofday" | "byapp" = "bycountry";
 
   constructor(private statsService: StatisticsService) { }
 
