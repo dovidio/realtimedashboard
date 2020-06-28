@@ -32,6 +32,15 @@ var AppNames = [...]string{
 	"ANDOID_E4",
 }
 
+var Countries = [...]string{
+	"Germany",
+	"Italy",
+	"USA",
+	"Austria",
+	"Switzerland",
+	"Spain",
+}
+
 // AppDownload contains metadata about downloads
 type AppDownload struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty" mapstructure:"_id"`
@@ -39,6 +48,7 @@ type AppDownload struct {
 	Latitude     float64            `bson:"latitude" json:"latitude"`
 	AppID        string             `bson:"app_id" json:"app_id" mapstructure:"app_id"`
 	DownloadedAt int64              `bson:"downloaded_at" json:"downloaded_at" mapstructure:"downloaded_at"`
+	Country      string             `bson:"country" json:"country" mapstructure:"country"`
 }
 
 func getAppDownloadList() []AppDownload {
@@ -78,6 +88,7 @@ func insertRandomDownload() {
 	appDownload.Latitude = rand.Float64()*20 + 40.0
 	appDownload.Longitude = rand.Float64() * 35
 	appDownload.DownloadedAt = time.Now().Unix()
+	appDownload.Country = Countries[rand.Int31n(int32(len(Countries)))]
 
 	_, err := collection.InsertOne(ctx, appDownload)
 
