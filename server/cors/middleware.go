@@ -1,6 +1,8 @@
 package cors
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // Middleware sets the allowed origins, methods and headers
 func Middleware(handler http.Handler) http.Handler {

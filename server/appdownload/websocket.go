@@ -6,12 +6,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// DownloadHandler gets called every time a new download has been observed
-type DownloadHandler interface {
-	OnNewDownload(AppDownload)
-}
-
-type websocketDownloadHandler struct {
+type WebsocketHandler struct {
 	ws              *websocket.Conn
 	databaseWatcher DatabaseWatchHandler
 }
@@ -21,10 +16,14 @@ type message struct {
 	Type string `json:"type"`
 }
 
-func (w *websocketDownloadHandler) webappDownloadSocket(ws *websocket.Conn) {
+func NewWebsocketHandler(databaseWatchHandler DatabaseWatchHandler) *WebsocketHandler {
+	return &WebsocketHandler{databaseWatcher: databaseWatchHandler}
+}
 
+// Websocket streams appdownloads to the websocket connection
+func (w *WebsocketHandler) Websocket(ws *websocket.Conn) {
 	w.ws = ws
-	myID := w.databaseWatcher.RegisterHandler(w)
+	myID := w.databaseWatcher.RegisterObserver(w)
 	log.Printf("My id is %d", myID)
 	for {
 		var msg message
@@ -35,10 +34,10 @@ func (w *websocketDownloadHandler) webappDownloadSocket(ws *websocket.Conn) {
 
 		log.Printf("received message %s\n", msg.Data)
 	}
-	w.databaseWatcher.UnregisterHandler(myID)
+	w.databaseWatcher.UnregisterObserver(myID)
 }
 
-func (w *websocketDownloadHandler) OnNewDownload(a AppDownload) {
+func (w *WebsocketHandler) OnNewAppDownload(a AppDownload) {
 	if err := websocket.JSON.Send(w.ws, a); err != nil {
 		log.Printf("Error while trying to send update to websocket: %v", err)
 	}
