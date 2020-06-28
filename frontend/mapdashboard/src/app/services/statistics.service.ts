@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { BehaviorSubject} from 'rxjs';
+import { debounceTime, take } from 'rxjs/operators';
 import { WebsocketService } from './websocket.service';
-import { AppDownload, StatsSummary } from '../model';
+import { AppDownload, StatsSummary, GeoJson } from '../model';
 import { AppDownloadService } from './app-download.service';
+import { AppComponent } from '../app.component';
 
 type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
 
@@ -15,7 +16,7 @@ const incrementStats = (array: StatsSummary[], prop: string): void => {
     array[index].count++;
   }
   array.sort((a, b) => b.count - a.count);
-}
+};
 
 const getTimeOfDay = (appDownload: AppDownload): TimeOfDay => {
 
@@ -32,33 +33,37 @@ const getTimeOfDay = (appDownload: AppDownload): TimeOfDay => {
   }
 
   return "night";
-}
+};
+
+const convertToGeoJson = (appDownload: AppDownload): GeoJson => {
+    return new GeoJson([appDownload.longitude, appDownload.latitude], {name: appDownload.app_id, country: appDownload.country});
+};
 
 @Injectable({
   providedIn: 'root'
 })
 export class StatisticsService {
 
-  private appDownloads = new BehaviorSubject<AppDownload[]>([]);
+  private appDownloads = new BehaviorSubject<GeoJson[]>([]);
   private byCountrySubject = new BehaviorSubject<StatsSummary[]>([]);
   private byTimeOfDaySubject = new BehaviorSubject<StatsSummary[]>([]);
   private byAppSubject = new BehaviorSubject<StatsSummary[]>([]);
 
-  appDownloads$ = this.appDownloads.asObservable().pipe(debounceTime(200));
+  appDownloads$ = this.appDownloads.asObservable().pipe(debounceTime(100));
   byCountry$ = this.byCountrySubject.asObservable();
   byTimeOfDay$ = this.byTimeOfDaySubject.asObservable();
   byApp$ = this.byAppSubject.asObservable();
 
   constructor(private websocketService: WebsocketService, private appDownloadService: AppDownloadService) {
-    this.websocketService.socket$.pipe(debounceTime(10)).subscribe(this.updateStats.bind(this));
-    this.appDownloadService.getAppDownloadList().subscribe((appDownloads: AppDownload[]) => {
+    this.websocketService.socket$.pipe().subscribe(this.updateStats.bind(this));
+    this.appDownloadService.getAppDownloadList().pipe(take(1)).subscribe((appDownloads: AppDownload[]) => {
       appDownloads.forEach(this.updateStats.bind(this))
     });
   }
 
   private updateStats(appDownload: AppDownload) {
     const currentApps = this.appDownloads.getValue();
-    currentApps.push(appDownload);
+    currentApps.push(convertToGeoJson(appDownload));
     this.appDownloads.next(currentApps);
     this.updateCountryStatistics(appDownload);
     this.updateTimeOfDaySatistics(appDownload);
