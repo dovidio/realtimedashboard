@@ -12,12 +12,13 @@ export class WebsocketService {
 
   public socket$: WebSocketSubject<AppDownload>;
 
-  constructor() { }
+  constructor() { 
+    this.connect();
+  }
 
   public connect(): void {
     if (!this.socket$ || this.socket$.closed) {
-      console.log("connecting web socket");
-      this.socket$ = webSocket(WS_ENDPOINT)
+      this.socket$ = webSocket(WS_ENDPOINT);
     }
   }
 

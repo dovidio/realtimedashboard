@@ -1,15 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { StatisticsService } from '../services/statistics.service';
+
 
 @Component({
   selector: 'app-statistics',
   templateUrl: './statistics.component.html',
   styleUrls: ['./statistics.component.scss']
 })
-export class StatisticsComponent implements OnInit {
+export class StatisticsComponent {
 
-  constructor() { }
+  selectedGrouping: "bycountry" | "bytimeofday" | "byapp" = "bycountry"
 
-  ngOnInit(): void {
-  }
+  constructor(private statsService: StatisticsService) { }
 
+  byCountry$ = this.statsService.byCountry$;
+  byTimeOfDay$ = this.statsService.byTimeOfDay$;
+  byApp$ = this.statsService.byApp$;
 }

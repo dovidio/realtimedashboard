@@ -1,12 +1,25 @@
 <mat-form-field color="accent">
     <mat-label>Show statistics</mat-label>
-    <mat-select>
-        <mat-option>By country</mat-option>
-        <mat-option>By app</mat-option>
-        <mat-option>By time of day</mat-option>
+    <mat-select [(value)]="selectedGrouping" >
+        <mat-option value="bycountry">By country</mat-option>
+        <mat-option value="bytimeofday">By time of day</mat-option>
+        <mat-option value="byapp">By app</mat-option>
     </mat-select>
 </mat-form-field>
 
 
-<p>statistics works!</p>
-
+<ng-container *ngIf="selectedGrouping === 'bycountry' && byCountry$ | async as byCountry">
+    <div *ngFor="let item of byCountry">
+        {{item.name}}: <b>{{item.count}}</b>
+    </div>
+</ng-container>
+<ng-container *ngIf="selectedGrouping === 'bytimeofday' && byTimeOfDay$ | async as byTimeOfDay">
+    <div *ngFor="let item of byTimeOfDay">
+        {{item.name}}: <b>{{item.count}}</b>
+    </div>
+</ng-container>
+<ng-container *ngIf="selectedGrouping === 'byapp' && byApp$ | async as byApp">
+    <div *ngFor="let item of byApp">
+        {{item.name}}: <b>{{item.count}}</b>
+    </div>
+</ng-container>
