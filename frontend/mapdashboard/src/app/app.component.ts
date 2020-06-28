@@ -1,16 +1,11 @@
-import { Component, OnInit } from "@angular/core";
-import { AppDownloadService } from './services/app-download.service';
+import { Component } from "@angular/core";
 
 @Component({
     templateUrl: "app.component.html",
     selector: 'app-root',
     styleUrls: ["app.component.scss"]
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
-    constructor(private appDownloadService: AppDownloadService) {}
-
-    ngOnInit(): void {
-        this.appDownloadService.getAppDownloadList().subscribe(console.log);
-    }
+    constructor() {}
 }
