@@ -3,7 +3,7 @@
 The server is mainly responsible to subscribe to the database changes and serve them to the web application.
 Some important files are the following:
 
-- **/appdonwload/repository.go**: provides the possibility to list all downloads and insert a single download (used by the simulator)
+- **/appdonwnload/repository.go**: provides the possibility to list all downloads and insert a single download (used by the simulator)
 - **/appdownload/simulator.go**: simulates random download data. It can be enabled by setting the env variable GENERATE_DATA to true.
 GENERATE_DATA_PERIOD specifies the period in milliseconds of data point creation.
 - **/appdownload/watcher**: watches for database changes and notifies observers. In this case the observer holds a websocket connection
