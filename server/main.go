@@ -24,7 +24,7 @@ func main() {
 	go dbWatcher.WatchAppDownloads()
 	go appdownload.GenerateData(1*time.Second, repository)
 
-	err := http.ListenAndServe("localhost:8080", nil)
+	err := http.ListenAndServe("0.0.0.0:8080", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
