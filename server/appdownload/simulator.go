@@ -37,7 +37,7 @@ func GenerateData(interval time.Duration, repository Repository, quit chan struc
 			appDownload.Latitude = rand.Float64()*20 + 40.0
 			appDownload.Longitude = rand.Float64() * 35
 			appDownload.DownloadedAt = time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
-			appDownload.Country = countries[rand.Int31n(int32(len(Countries)))]
+			appDownload.Country = countries[rand.Int31n(int32(len(countries)))]
 
 			repository.Add(appDownload)
 		}
