@@ -1,7 +1,9 @@
-package appdownload
+package appdownload_test
 
 import (
-	"realtimedashboard/appdownload/mocks"
+	"realtimedashboard/appdownload"
+	. "realtimedashboard/appdownload"
+	mocks "realtimedashboard/appdownload/mock_appdownload"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -37,7 +39,7 @@ func TestAdd(t *testing.T) {
 	// given
 	ctrl := gomock.NewController(t)
 
-	download := AppDownload{
+	download := appdownload.AppDownload{
 		AppID:        "some_id",
 		Country:      "some_country",
 		DownloadedAt: 0,
@@ -53,7 +55,6 @@ func TestAdd(t *testing.T) {
 	repository := NewMongoRepository(dbHelper)
 
 	// when
-
 	err := repository.Add(download)
 
 	// then

@@ -24,7 +24,6 @@ func NewWebsocketHandler(databaseWatchHandler DatabaseWatchHandler) *WebsocketHa
 // Websocket streams appdownloads to the websocket connection
 func (w *WebsocketHandler) Websocket(ws *websocket.Conn) {
 	myID := w.databaseWatcher.RegisterObserver(&websocketObserver{ws: ws})
-	log.Printf("My id is %d", myID)
 	for {
 		var msg message
 		if err := websocket.JSON.Receive(ws, &msg); err != nil {

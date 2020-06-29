@@ -10,13 +10,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 )
 
 func main() {
 	db := db.NewClient().Database("appdownloads")
 	repository := appdownload.NewMongoRepository(db)
-	dbWatcher := appdownload.NewMongoWatchHandler(db)
+	dbWatcher := appdownload.NewMongoWatchHandler(db, make(map[uuid.UUID]Observer, 0))
 
 	handler := appdownload.NewHandler(repository)
 	wsHandler := appdownload.NewWebsocketHandler(dbWatcher)

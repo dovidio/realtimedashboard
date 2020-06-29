@@ -16,7 +16,6 @@ import (
 // DatabaseHelper abstracts (some) mongodb Database methods
 type DatabaseHelper interface {
 	Collection(name string) CollectionHelper
-	Client() ClientHelper
 }
 
 // CollectionHelper abstracts (some) mongodb Collection methods
@@ -110,11 +109,6 @@ func (mc *mongoCollection) InsertOne(ctx context.Context, document interface{}) 
 
 func (mc *mongoCollection) Watch(ctx context.Context, pipeline mongo.Pipeline, options *options.ChangeStreamOptions) (MultiResultHelper, error) {
 	return mc.coll.Watch(ctx, pipeline, options)
-}
-
-func (md *mongoDatabase) Client() ClientHelper {
-	client := md.db.Client()
-	return &mongoClient{cl: client}
 }
 
 func (mmr *mongoMultiResult) Next(ctx context.Context) bool {

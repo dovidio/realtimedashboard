@@ -23,8 +23,8 @@ type DatabaseWatchHandler interface {
 }
 
 // NewMongoWatchHandler creates a new watch handler
-func NewMongoWatchHandler(db db.DatabaseHelper) DatabaseWatchHandler {
-	return &MongoDbWatchHandler{observers: make(map[uuid.UUID]Observer, 0), db: db}
+func NewMongoWatchHandler(db db.DatabaseHelper, observers map[uuid.UUID]Observer) DatabaseWatchHandler {
+	return &MongoDbWatchHandler{observers: observers, db: db}
 }
 
 // MongoDbWatchHandler holds a map of observers, a mutex for synchronizing across different threads,
@@ -55,14 +55,15 @@ func (m *MongoDbWatchHandler) UnregisterObserver(u uuid.UUID) {
 // WatchAppDownloads starts watching changes in db and notifies observers accordingly
 func (m *MongoDbWatchHandler) WatchAppDownloads() {
 	for {
-		if err := m.watchAppDownloads(); err != nil {
+		if err := m.WatchAppDownloadsImpl(); err != nil {
 			fmt.Println(err)
 			time.Sleep(1 * time.Second)
 		}
 	}
 }
 
-func (m *MongoDbWatchHandler) watchAppDownloads() error {
+// WatchAppDownloadsImpl is exported only for testing purpose. Do not use it
+func (m *MongoDbWatchHandler) WatchAppDownloadsImpl() error {
 	collection := m.db.Collection("appdownloads")
 	var pipeline = mongo.Pipeline{
 		{{"$project", bson.D{{"operationType", 0}, {"ns", 0}, {"documentKey", 0}, {"clusterTime", 0}}}},
