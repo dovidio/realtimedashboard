@@ -27,6 +27,8 @@ The server will stop if it cannot connect with mongodb after 10 seconds, so make
 
 # Run with docker
 The easiest way to run the server would be to use docker or docker-compose in the root directory. This will also run mongodb and the frontend
+Notice that mongo needs to be setup to run in replica set mode. For this reason I provided a bash script that spin up all the containers and takes
+care of this as well. You only need to run
 ```bash
-docker-compose up
+./run.sh
 ```
