@@ -6,9 +6,8 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-// WebsocketHandler handles the websocket connection and register itself to the DatabaseWatchHandler
+// WebsocketHandler handles the websocket connection
 type WebsocketHandler struct {
-	ws              *websocket.Conn
 	databaseWatcher DatabaseWatchHandler
 }
 
@@ -24,8 +23,7 @@ func NewWebsocketHandler(databaseWatchHandler DatabaseWatchHandler) *WebsocketHa
 
 // Websocket streams appdownloads to the websocket connection
 func (w *WebsocketHandler) Websocket(ws *websocket.Conn) {
-	w.ws = ws
-	myID := w.databaseWatcher.RegisterObserver(w)
+	myID := w.databaseWatcher.RegisterObserver(&websocketObserver{ws: ws})
 	log.Printf("My id is %d", myID)
 	for {
 		var msg message
@@ -39,8 +37,12 @@ func (w *WebsocketHandler) Websocket(ws *websocket.Conn) {
 	w.databaseWatcher.UnregisterObserver(myID)
 }
 
+type websocketObserver struct {
+	ws *websocket.Conn
+}
+
 // OnNewAppDownload send the new app downoads to the websocket
-func (w *WebsocketHandler) OnNewAppDownload(a AppDownload) {
+func (w *websocketObserver) OnNewAppDownload(a AppDownload) {
 	if err := websocket.JSON.Send(w.ws, a); err != nil {
 		log.Printf("Error while trying to send update to websocket: %v", err)
 	}
