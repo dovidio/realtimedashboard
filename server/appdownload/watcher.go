@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
@@ -45,6 +45,15 @@ func (m *MongoDbWatchHandler) UnregisterObserver(u uuid.UUID) {
 }
 
 func (m *MongoDbWatchHandler) WatchAppDownloads() {
+	for {
+		if err := m.watchAppDownloads(); err != nil {
+			fmt.Println(err)
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+
+func (m *MongoDbWatchHandler) watchAppDownloads() error {
 	collection := m.client.Database("appdownloads").Collection("appdownloads")
 	var pipeline = mongo.Pipeline{
 		{{"$project", bson.D{{"operationType", 0}, {"ns", 0}, {"documentKey", 0}, {"clusterTime", 0}}}},
@@ -52,7 +61,7 @@ func (m *MongoDbWatchHandler) WatchAppDownloads() {
 	ctx := context.Background()
 	streamCur, err := collection.Watch(ctx, pipeline, options.ChangeStream().SetFullDocument(options.UpdateLookup))
 	if err != nil {
-		log.Fatalf("Error getting streaming cursor: %v", err)
+		return fmt.Errorf("Error getting streaming cursor: %v", err)
 	}
 
 	for streamCur.Next(ctx) {
@@ -61,8 +70,9 @@ func (m *MongoDbWatchHandler) WatchAppDownloads() {
 
 		fullDocument, found := result["fullDocument"]
 		if !found {
-			log.Fatalf("Cannnot find full document: %v", err)
+			return fmt.Errorf("Cannnot find full document: %v", err)
 		}
+
 		appDownload, err := extractAppDownload(fullDocument)
 		if err != nil {
 			fmt.Print(err)
@@ -74,6 +84,8 @@ func (m *MongoDbWatchHandler) WatchAppDownloads() {
 		}
 		m.mut.Unlock()
 	}
+
+	return errors.New("streaming cursor finished")
 }
 
 func extractAppDownload(m interface{}) (AppDownload, error) {
