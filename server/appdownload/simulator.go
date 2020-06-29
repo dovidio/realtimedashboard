@@ -25,16 +25,21 @@ var Countries = [...]string{
 }
 
 // GenerateData insert a random app periodically with the specified interval
-func GenerateData(interval time.Duration, repository Repository) {
+func GenerateData(interval time.Duration, repository Repository, quit chan struct{}) {
 	for {
-		time.Sleep(interval)
-		var appDownload AppDownload
-		appDownload.AppID = AppNames[rand.Int31n(int32(len(AppNames)))]
-		appDownload.Latitude = rand.Float64()*20 + 40.0
-		appDownload.Longitude = rand.Float64() * 35
-		appDownload.DownloadedAt = time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
-		appDownload.Country = Countries[rand.Int31n(int32(len(Countries)))]
+		select {
+		case <-quit:
+			return
+		default:
+			time.Sleep(interval)
+			var appDownload AppDownload
+			appDownload.AppID = AppNames[rand.Int31n(int32(len(AppNames)))]
+			appDownload.Latitude = rand.Float64()*20 + 40.0
+			appDownload.Longitude = rand.Float64() * 35
+			appDownload.DownloadedAt = time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
+			appDownload.Country = Countries[rand.Int31n(int32(len(Countries)))]
 
-		repository.Add(appDownload)
+			repository.Add(appDownload)
+		}
 	}
 }

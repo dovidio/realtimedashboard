@@ -23,6 +23,8 @@ services:
     environment:
       - DB_HOSTNAME=mongodb
       - DB_PORT=27017
+      - GENERATE_DATA=true
+      - GENERATE_DATA_PERIOD=100 # PERIOD IN MILLISECONDS FOR WHICH A RANDOM APP DOWNLOAD WILL BE CREATED
   frontend:
     build: ./frontend/mapdashboard
     depends_on:
