@@ -17,7 +17,7 @@ import (
 func main() {
 	db := db.NewClient().Database("appdownloads")
 	repository := appdownload.NewMongoRepository(db)
-	dbWatcher := appdownload.NewMongoWatchHandler(db, make(map[uuid.UUID]Observer, 0))
+	dbWatcher := appdownload.NewMongoWatchHandler(db, make(map[uuid.UUID]appdownload.Observer, 0))
 
 	handler := appdownload.NewHandler(repository)
 	wsHandler := appdownload.NewWebsocketHandler(dbWatcher)
