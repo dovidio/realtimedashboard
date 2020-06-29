@@ -12,3 +12,20 @@ services:
       - 27017:27017
     volumes:
       - ~/mongo/realtimedashboard/db:/data/db
+  server:
+    build: ./server
+    depends_on:
+      - "mongodb"
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    environment:
+      - DB_HOSTNAME=mongodb
+      - DB_PORT=27017
+  frontend:
+    build: ./frontend/mapdashboard
+    depends_on:
+      - "server"
+    ports:
+      - 9000:80
