@@ -47,6 +47,8 @@ func (m *MongoDbWatchHandler) RegisterObserver(observer Observer) uuid.UUID {
 
 // UnregisterObserver remove the observer from the map
 func (m *MongoDbWatchHandler) UnregisterObserver(u uuid.UUID) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
 	delete(m.observers, u)
 }
 
