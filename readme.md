@@ -2,7 +2,6 @@
 
 The aim of this project is to show a world map dashboard containing app downloads information.
 Every time a download is performed, the dashboard should update automatically.
-Additionally the option to filter by timeframe is provided.
 ![real time dashboard](real-time-dashboard.png)
 
 
