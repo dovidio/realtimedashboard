@@ -1,7 +1,6 @@
 package appdownload_test
 
 import (
-	"fmt"
 	. "realtimedashboard/appdownload"
 	mocks "realtimedashboard/appdownload/mock_appdownload"
 
@@ -47,11 +46,7 @@ func TestNotifiesObserversOnDatabaseChange(t *testing.T) {
 	firstCall := resultHelper.EXPECT().Next(gomock.Any()).Return(true)
 	resultHelper.EXPECT().Next(gomock.Any()).After(firstCall).Return(false)
 	resultHelper.EXPECT().Decode(gomock.Any()).Do(func(_arg *bson.M) {
-		fmt.Println(_arg)
-
 		*_arg = bson.M{"fullDocument": bson.M{}}
-
-		fmt.Println(_arg)
 	})
 
 	observer1 := mocks.NewMockObserver(ctrl)
