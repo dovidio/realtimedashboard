@@ -11,10 +11,12 @@ type Handler struct {
 	repository Repository
 }
 
+// NewHandler creates a new handler holding the provided repository
 func NewHandler(repository Repository) *Handler {
 	return &Handler{repository: repository}
 }
 
+// Handle routes the request to the appropriate handler function
 func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:

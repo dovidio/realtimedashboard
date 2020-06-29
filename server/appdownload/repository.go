@@ -3,10 +3,10 @@ package appdownload
 import (
 	"context"
 	"log"
+	"realtimedashboard/db"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Repository provides access to the appdownload storage
@@ -18,16 +18,19 @@ type Repository interface {
 	Add(AppDownload) error
 }
 
+// MongoRepository provides access to the appdownload mongo storage
 type MongoRepository struct {
-	client *mongo.Client
+	db db.DatabaseHelper
 }
 
-func NewMongoRepository(client *mongo.Client) Repository {
-	return &MongoRepository{client: client}
+// NewMongoRepository creates a new MongoRepository
+func NewMongoRepository(db db.DatabaseHelper) Repository {
+	return &MongoRepository{db: db}
 }
 
+// GetAll returns all appdownloads stored in mongo
 func (m *MongoRepository) GetAll() []AppDownload {
-	collection := m.client.Database("appdownloads").Collection("appdownloads")
+	collection := m.db.Collection("appdownloads")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -53,8 +56,9 @@ func (m *MongoRepository) GetAll() []AppDownload {
 
 }
 
+// Add adds a new appdownload to mongo
 func (m *MongoRepository) Add(appDownload AppDownload) error {
-	collection := m.client.Database("appdownloads").Collection("appdownloads")
+	collection := m.db.Collection("appdownloads")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

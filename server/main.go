@@ -6,6 +6,7 @@ import (
 	"os"
 	"realtimedashboard/appdownload"
 	"realtimedashboard/cors"
+	"realtimedashboard/db"
 	"strconv"
 	"time"
 
@@ -13,9 +14,9 @@ import (
 )
 
 func main() {
-	client := appdownload.GetMongoClient()
-	repository := appdownload.NewMongoRepository(client)
-	dbWatcher := appdownload.NewMongoWatchHandler(client)
+	db := db.NewClient().Database("appdownloads")
+	repository := appdownload.NewMongoRepository(db)
+	dbWatcher := appdownload.NewMongoWatchHandler(db)
 
 	handler := appdownload.NewHandler(repository)
 	wsHandler := appdownload.NewWebsocketHandler(dbWatcher)

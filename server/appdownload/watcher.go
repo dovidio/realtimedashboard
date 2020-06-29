@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"realtimedashboard/db"
 	"sync"
 	"time"
 
@@ -14,24 +15,28 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// DatabaseWatchHandler watches for changes in a database and handles updates calling DownloadWatcher.OnNewDownload
+// DatabaseWatchHandler watches for changes in a database and handles notifies its observers
 type DatabaseWatchHandler interface {
-	RegisterObserver(AppDownloadObserver) uuid.UUID
+	RegisterObserver(Observer) uuid.UUID
 	UnregisterObserver(u uuid.UUID)
 	WatchAppDownloads()
 }
 
-func NewMongoWatchHandler(c *mongo.Client) DatabaseWatchHandler {
-	return &MongoDbWatchHandler{observers: make(map[uuid.UUID]AppDownloadObserver, 0), client: c}
+// NewMongoWatchHandler creates a new watch handler
+func NewMongoWatchHandler(db db.DatabaseHelper) DatabaseWatchHandler {
+	return &MongoDbWatchHandler{observers: make(map[uuid.UUID]Observer, 0), db: db}
 }
 
+// MongoDbWatchHandler holds a map of observers, a mutex for synchronizing across different threads,
+// and a db helper to subscribe to the db changes
 type MongoDbWatchHandler struct {
-	observers map[uuid.UUID]AppDownloadObserver
+	observers map[uuid.UUID]Observer
 	mut       sync.Mutex
-	client    *mongo.Client
+	db        db.DatabaseHelper
 }
 
-func (m *MongoDbWatchHandler) RegisterObserver(observer AppDownloadObserver) uuid.UUID {
+// RegisterObserver add an observer to the observers map
+func (m *MongoDbWatchHandler) RegisterObserver(observer Observer) uuid.UUID {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 	uuid := uuid.New()
@@ -40,10 +45,12 @@ func (m *MongoDbWatchHandler) RegisterObserver(observer AppDownloadObserver) uui
 	return uuid
 }
 
+// UnregisterObserver remove the observer from the map
 func (m *MongoDbWatchHandler) UnregisterObserver(u uuid.UUID) {
 	delete(m.observers, u)
 }
 
+// WatchAppDownloads starts watching changes in db and notifies observers accordingly
 func (m *MongoDbWatchHandler) WatchAppDownloads() {
 	for {
 		if err := m.watchAppDownloads(); err != nil {
@@ -54,7 +61,7 @@ func (m *MongoDbWatchHandler) WatchAppDownloads() {
 }
 
 func (m *MongoDbWatchHandler) watchAppDownloads() error {
-	collection := m.client.Database("appdownloads").Collection("appdownloads")
+	collection := m.db.Collection("appdownloads")
 	var pipeline = mongo.Pipeline{
 		{{"$project", bson.D{{"operationType", 0}, {"ns", 0}, {"documentKey", 0}, {"clusterTime", 0}}}},
 	}
@@ -101,7 +108,7 @@ func extractAppDownload(m interface{}) (AppDownload, error) {
 	return appDownload, nil
 }
 
-// AppDownloadObserver gets called every time a new download has been observed
-type AppDownloadObserver interface {
+// Observer gets called every time a new download has been observed
+type Observer interface {
 	OnNewAppDownload(AppDownload)
 }

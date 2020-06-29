@@ -15,7 +15,7 @@ var AppNames = [...]string{
 	"ANDOID_E4",
 }
 
-var Countries = [...]string{
+var countries = [...]string{
 	"Germany",
 	"Italy",
 	"USA",
@@ -37,7 +37,7 @@ func GenerateData(interval time.Duration, repository Repository, quit chan struc
 			appDownload.Latitude = rand.Float64()*20 + 40.0
 			appDownload.Longitude = rand.Float64() * 35
 			appDownload.DownloadedAt = time.Now().UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond))
-			appDownload.Country = Countries[rand.Int31n(int32(len(Countries)))]
+			appDownload.Country = countries[rand.Int31n(int32(len(Countries)))]
 
 			repository.Add(appDownload)
 		}
