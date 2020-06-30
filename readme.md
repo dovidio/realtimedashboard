@@ -37,7 +37,7 @@ Either setup up a mongodb with replica set yourself, or run the following script
 setup-mongo-rs.sh
 ```
 To run the server locally, see the [instructions](https://github.com/dovidio/realtimedashboard/blob/master/server/README.md) in the master folder
-To run the frontend locally, see the [instructions](https://github.com/dovidio/realtimedashboard/blob/master/frontend/mapdashboard/README.md) in the frontend folder
+To run the frontend locally, see the [instructions](https://github.com/dovidio/realtimedashboard/blob/master/frontend/README.md) in the frontend folder
 
 ### Testing
 I've written a few unit tests both in the server part and the angular part. Beside that I've written one integration test called test.sh which spins up mongo and the server, connect with a ws to the server, and check that one new record are inserted in

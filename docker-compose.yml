@@ -27,7 +27,7 @@ services:
       - GENERATE_DATA=$GENERATE_DATA
       - GENERATE_DATA_PERIOD=$GENERATE_DATA_PERIOD
   frontend:
-    build: ./frontend/mapdashboard
+    build: ./frontend
     container_name: frontend
     depends_on:
       - "server"
